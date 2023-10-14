@@ -1,0 +1,64 @@
+﻿@* Se crea un componente generico para listar datos de cualquier tipo *@
+
+@* Definimos la propiedad para recibir cualquier tipo de dato <T> *@
+@typeparam Titem
+
+
+@if (MyList is null)
+{
+    @if (Loading is null)
+    {
+        <div class="align-items-center">
+            <img src="https://www.afip.gob.ar/landing/componentes/hamburger-navbar/img/loading.gif" />
+        </div>
+    }
+    else
+    {
+        @Loading
+    }
+}
+else if (MyList.Count == 0)
+{
+    @if (NoRecords is null)
+    {
+        <div class="align-items-center">
+            <p>No hay datos para mostrar</p>
+        </div>
+        
+    }
+    else
+    {
+        @NoRecords
+    }
+}
+else
+{
+    @Body
+}
+
+
+@code {
+    @* Se crean las propiedades  *@
+
+    @* En caso de que el usuario no envie dada *@
+    [Parameter]
+    public RenderFragment? Loading { get; set; }
+
+
+    [Parameter]
+    public RenderFragment? NoRecords { get; set; }
+
+    @* Lo que se va a mostrar en pantalla y lo ponemos obligatorio con EditorRequiered *@
+    [Parameter]
+    [EditorRequired]
+    public RenderFragment? Body { get; set; }
+
+    @* Definimos la lista de los datos a mostrar *@
+    [Parameter]
+    [EditorRequired]
+    public List<Titem>? MyList { get; set; }
+
+
+
+
+}
