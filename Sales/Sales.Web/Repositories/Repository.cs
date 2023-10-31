@@ -5,6 +5,9 @@ using Web.Repositories;
 
 namespace Sales.WEB.Repositories
 {
+    /// <summary>
+    /// Clase principal que recibe las solicitudes Http e implementa la interface IRepository
+    /// </summary>
     public class Repository : IRepository
     {
         // Creamos la propiedad pripada del HttpClient
@@ -45,6 +48,13 @@ namespace Sales.WEB.Repositories
             return new HttpResponseWrapper<T>(default, true, responseHttp);
         }
 
+        /// <summary>
+        /// Metodo post
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public async Task<HttpResponseWrapper<object>> Post<T>(string url, T model)
         {
             var mesageJSON = JsonSerializer.Serialize(model);
@@ -53,6 +63,14 @@ namespace Sales.WEB.Repositories
             return new HttpResponseWrapper<object>(null, !responseHttp.IsSuccessStatusCode, responseHttp);
         }
 
+        /// <summary>
+        /// Metodos post que retorna un objecto
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
         public async Task<HttpResponseWrapper<TResponse>> Post<T, TResponse>(string url, T model)
         {
             var messageJSON = JsonSerializer.Serialize(model);
@@ -78,6 +96,56 @@ namespace Sales.WEB.Repositories
         {
             var respuestaString = await httpResponse.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(respuestaString, jsonSerializerOptions)!;
+        }
+
+        /// <summary>
+        /// Metodo de eliminar
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        public async Task<HttpResponseWrapper<object>> Delete(string url)
+        {
+            var responseHTTP = await _httpClient.DeleteAsync(url);
+            return new HttpResponseWrapper<object>(null, !responseHTTP.IsSuccessStatusCode, responseHTTP);
+        }
+
+        /// <summary>
+        /// Metodo de actualizar
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<HttpResponseWrapper<object>> Put<T>(string url, T model)
+        {
+            var messageJSON = JsonSerializer.Serialize(model);
+            var messageContent = new StringContent(messageJSON, Encoding.UTF8, "application/json");
+            var responseHttp = await _httpClient.PutAsync(url, messageContent);
+            return new HttpResponseWrapper<object>(null, !responseHttp.IsSuccessStatusCode, responseHttp);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<HttpResponseWrapper<TResponse>> Put<T, TResponse>(string url, T model)
+        {
+            var messageJSON = JsonSerializer.Serialize(model);
+            var messageContet = new StringContent(messageJSON, Encoding.UTF8, "application/json");
+            var responseHttp = await _httpClient.PostAsync(url, messageContet);
+            if (responseHttp.IsSuccessStatusCode)
+            {
+                var response = await UnserializeAnswer<TResponse>(responseHttp, _jsonDefaultOptions);
+                return new HttpResponseWrapper<TResponse>(response, false, responseHttp);
+            }
+            return new HttpResponseWrapper<TResponse>(default, !responseHttp.IsSuccessStatusCode, responseHttp);
+            
         }
     }
 }

@@ -1,3 +1,4 @@
+using CurrieTechnologies.Razor.SweetAlert2;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Sales.Web;
@@ -18,5 +19,8 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
  El Trances = se crea una instancia solo una vez
  */
 builder.Services.AddScoped<IRepository, Repository>();
+
+// Inyectamos el paquete SweetAlert2
+builder.Services.AddSweetAlert2();
 
 await builder.Build().RunAsync();

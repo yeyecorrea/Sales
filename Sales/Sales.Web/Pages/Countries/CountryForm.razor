@@ -1,0 +1,78 @@
+﻿@inject SweetAlertService sweetAlertService
+
+<NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation"/>
+
+<h3>Pais</h3>
+
+@*para crear un formulario se utiliza el componente EditForm el cual recibe el como parametro el modelo y el accion*@
+<EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
+    @*Con este componente mostraremos las validaciones realizadas en el modelo*@
+    <DataAnnotationsValidator/>
+    <div class="mb-3">
+        <div>
+            @*Utilizamos el componente InputText que almacenara el texto  y utilizamos la propiedad @bind-Value para vincularlo al modelo*@
+            <InputText class="form-control" @bind-Value="@Country.Name"></InputText>
+            @*Mostramos los errors*@
+            <ValidationMessage For="@(() => Country.Name)"/>
+        </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Guardar</button>
+    <button class="btn btn-success" @onclick="ReturnAction">Regresar</button>
+</EditForm>
+
+@code {
+    private EditContext editContext = null!;
+
+    @*Parametro de lo que se va a guardar en este caso es el modelo*@
+    [Parameter]
+    [EditorRequired]
+    public Country Country { get; set; } = null;
+
+    @*Parametro EventCallBack que son eventos de ejecucion, este sera utilizado para validar el formulario*@
+    [Parameter]
+    [EditorRequired]
+    public EventCallback OnValidSubmit { get; set; }
+
+    @*Parametro EventCallBack que son eventos de ejecucion, este sera utilizado para returnar en el boton cancelar*@
+    [Parameter]
+    [EditorRequired]
+    public EventCallback ReturnAction { get; set; }
+
+    public bool FormPostedSuccessfully { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        editContext = new(Country);
+    }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        // Validamos que el formulario no este mdificado
+        var formWasMofied = editContext.IsModified();
+        if (formWasMofied || FormPostedSuccessfully )
+        {
+            return;
+        }
+
+        // Creamos el modal para que el usuario de aceptar o finalizar
+        var resutl = await sweetAlertService.FireAsync(new SweetAlertOptions
+        {
+            Title = "Confirmacion",
+            Text = "¿Deseas abandonar la pagina y perder los cambios?",
+            Icon = SweetAlertIcon.Warning,
+            ShowCancelButton = true,
+            CancelButtonText = "No",
+            ConfirmButtonText = "Si"
+
+        });
+
+        var confirm = !string.IsNullOrEmpty(resutl.Value);
+        if (confirm)
+        {
+            return;
+        }
+
+        context.PreventNavigation();
+
+    }
+}

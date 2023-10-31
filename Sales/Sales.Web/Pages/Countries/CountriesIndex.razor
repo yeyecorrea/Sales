@@ -1,16 +1,17 @@
 ﻿@page "/countries"
 @* Inyectamos el IRepository *@
 @inject IRepository repository
+@inject SweetAlertService sweetAlertService
+@inject NavigationManager navigationManager
 
 <h3>Paises</h3>
+
+<a class="btn btn-primary mb-5" href="/countries/create">Nuevo Pais</a>
 
 @* Invocamos el componente creado *@
 
 <GenericList MyList="Countries">
     @* Se pueden enviar data a los otros componentes no obligatorios *@
-    <Loading>
-
-    </Loading>
     <Body>
         <table class="table table-striped">
             <thead>
@@ -24,8 +25,8 @@
                 {
                     <tr>
                         <td>
-                            <a class="btn btn-warning">Editar</a>
-                            <button class="btn btn-danger">Borrar</button>
+                            <a class="btn btn-warning" href="/countries/edit/@country.Id">Editar</a>
+                            <button class="btn btn-danger btn-sm" @onclick=@(() => DeleteAsync(country.Id))><i class="oi oi-trash" /> Borrar</button>
                         </td>
                         <td>
                             @country.Name
@@ -44,10 +45,47 @@
     @* Se sobre escribe el metodo OnInitializedAsync que es como el OnInit en angular  *@
     protected override async Task OnInitializedAsync()
     {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
         @* Obtenemos la lsita de paises,´por medio de repositori el objecto inyectado y le pasamos la url *@
         var responseHttp = await repository.Get<List<Country>>("/api/countries");
 
         @* Llenamos las lista con la respuesta *@
         Countries = responseHttp.Response;
+    }
+
+    private async Task DeleteAsync(int Id)
+    {
+        var result = await sweetAlertService.FireAsync(new SweetAlertOptions
+            {
+                Title = "Confirmación",
+                Text = "¿Realmente deseas eliminar el registro?",
+                Icon = SweetAlertIcon.Question,
+                ShowCancelButton = true,
+                CancelButtonText = "No",
+                ConfirmButtonText = "Si"
+            });
+
+        var confirm = string.IsNullOrEmpty(result.Value);
+        if (confirm)
+        {
+            return;
+        }
+
+        var responseHttp = await repository.Delete($"/api/countries/id:int?id={Id}");
+        if (responseHttp.Error)
+        {
+            if (responseHttp.HttpResponseMessage.StatusCode != HttpStatusCode.NotFound)
+            {
+                var message = await responseHttp.GetErrorMessageAsync();
+                await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+                return;
+            }
+        }
+        
+        await LoadAsync();
     }
 }
