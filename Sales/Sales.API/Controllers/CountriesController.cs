@@ -41,21 +41,53 @@ namespace Sales.API.Controllers
         [HttpPost]
         public async Task<ActionResult> PostAsync(Country country)
         {
-            // Guardamos el objecto del "Modelo Country" por medio de enlace de datos
-            _context.Add(country);
-            // Guardamos en la base de datos
-            await _context.SaveChangesAsync();
-            return Ok(country);
+            try
+            {
+                // Guardamos el objecto del "Modelo Country" por medio de enlace de datos
+                _context.Add(country);
+                // Guardamos en la base de datos
+                await _context.SaveChangesAsync();
+                return Ok(country);
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                if (dbUpdateException.InnerException!.Message.Contains("duplicate"))
+                {
+                    return BadRequest("Ya existe un pais con el mismo nombre");
+                }
+                throw;
+            }
+            catch (Exception execption) 
+            {
+                return BadRequest(execption.Message);
+            }
+            
         }
 
         [HttpPut]
         public async Task<ActionResult> PutAsync(Country country)
         {
-            // Actualizamos el objecto del "Modelo Country" por medio de enlace de datos
-            _context.Update(country);
-            // Guardamos en la base de datos
-            await _context.SaveChangesAsync();
-            return Ok(country);
+            try
+            {
+                // Actualizamos el objecto del "Modelo Country" por medio de enlace de datos
+                _context.Update(country);
+                // Guardamos en la base de datos
+                await _context.SaveChangesAsync();
+                return Ok(country);
+            }
+            catch (DbUpdateException dbUpdateException)
+            {
+                if (dbUpdateException.InnerException!.Message.Contains("duplicate"))
+                {
+                    return BadRequest("Ya existe un pais con el mismo nombre");
+                }
+                throw;
+            }
+            catch (Exception execption)
+            {
+                return BadRequest(execption.Message);
+            }
+            
         }
 
         [HttpDelete("id:int")]

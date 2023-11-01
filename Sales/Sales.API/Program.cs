@@ -12,7 +12,21 @@ builder.Services.AddSwaggerGen();
 
 // Inyectamos el DataContext
 builder.Services.AddDbContext<DataContext>(x => x.UseSqlServer("name=DefaultConnection"));
+// Inyectamos el seeder
+builder.Services.AddTransient<SeedDb>();
 var app = builder.Build();
+SeedData(app);
+
+// Metodo que crea una inyeccion manual para los datos en caso de uq eno existan ya que estos datos no se ingresaran por repositorry
+void SeedData(WebApplication app)
+{
+    IServiceScopeFactory? scopedFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+    using (IServiceScope? scope = scopedFactory!.CreateScope())
+    {
+        SeedDb? service = scope.ServiceProvider.GetService<SeedDb>();
+        service!.SeedAsync().Wait();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
